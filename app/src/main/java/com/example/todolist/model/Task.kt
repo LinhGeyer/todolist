@@ -1,3 +1,11 @@
 package com.example.todolist.model
 
-data class Task(val name: String, var isCompleted: Boolean = false)
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "tasks")
+data class Task(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val title: String,
+    var isCompleted: Boolean
+)

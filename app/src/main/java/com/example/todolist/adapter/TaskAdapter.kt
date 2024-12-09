@@ -1,18 +1,23 @@
 package com.example.todolist.adapter
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.view.LayoutInflater
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
 import android.graphics.Paint
+import androidx.compose.foundation.layout.size
 import androidx.recyclerview.widget.RecyclerView
 import com.example.todolist.R
 import com.example.todolist.model.Task
 
 
 class TaskAdapter(private val tasks: MutableList<Task>) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cbTaskCompleted: CheckBox = itemView.findViewById(R.id.cbTaskCompleted)
@@ -26,7 +31,7 @@ class TaskAdapter(private val tasks: MutableList<Task>) : RecyclerView.Adapter<T
 
     override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
         val task = tasks[position]
-        holder.tvTaskName.text = task.name
+        holder.tvTaskName.text = task.title
         holder.cbTaskCompleted.isChecked = task.isCompleted
 
         // Update UI for completed task
@@ -44,17 +49,15 @@ class TaskAdapter(private val tasks: MutableList<Task>) : RecyclerView.Adapter<T
 
         // Handle long-press to delete task
         holder.cbTaskCompleted.setOnLongClickListener {
-            if (!holder.itemView.isLayoutRequested) {
-                AlertDialog.Builder(holder.itemView.context)
-                    .setTitle("Delete Task")
-                    .setMessage("Are you sure you want to delete this task?")
-                    .setPositiveButton("Yes") { _, _ ->
-                        tasks.removeAt(position)
-                        notifyItemRemoved(position)
-                    }
-                    .setNegativeButton("No", null)
-                    .show()
-            }
+            AlertDialog.Builder(holder.itemView.context)
+                .setTitle("Delete Task")
+                .setMessage("Are you sure you want to delete this task?")
+                .setPositiveButton("Yes") { _, _ ->
+                    tasks.removeAt(holder.adapterPosition)
+                    notifyItemRemoved(holder.adapterPosition)
+                }
+                .setNegativeButton("No", null)
+                .show()
             true
         }
 
@@ -66,6 +69,17 @@ class TaskAdapter(private val tasks: MutableList<Task>) : RecyclerView.Adapter<T
 
     fun addTask(task: Task) {
         tasks.add(task)
-        notifyItemInserted(tasks.size - 1)
+        // Add runOnUiThread here:
+        mainHandler.post {
+            notifyItemInserted(tasks.size - 1)
+        }
+    }
+
+    fun setTasks(newTasks: List<Task>?) {
+        if (newTasks != null) {
+            tasks.clear()
+            tasks.addAll(newTasks)
+            notifyDataSetChanged()
+        }
     }
 }

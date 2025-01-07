@@ -16,7 +16,7 @@ import com.example.todolist.R
 import com.example.todolist.model.Task
 
 
-class TaskAdapter(private val tasks: MutableList<Task>) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
+class TaskAdapter(private val recyclerView: RecyclerView, private val tasks: MutableList<Task>) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -31,6 +31,7 @@ class TaskAdapter(private val tasks: MutableList<Task>) : RecyclerView.Adapter<T
 
     override fun onBindViewHolder(holder: TaskViewHolder, position: Int) {
         val task = tasks[position]
+        //val recyclerView = holder.itemView.parent as? RecyclerView
         holder.tvTaskName.text = task.title
         holder.cbTaskCompleted.isChecked = task.isCompleted
 
@@ -44,7 +45,9 @@ class TaskAdapter(private val tasks: MutableList<Task>) : RecyclerView.Adapter<T
         // Handle checkbox toggle
         holder.cbTaskCompleted.setOnCheckedChangeListener { _, isChecked ->
             task.isCompleted = isChecked
-            notifyItemChanged(position)
+            recyclerView.post {
+                notifyItemChanged(position)
+            }
         }
 
         // Handle long-press to delete task
@@ -54,7 +57,9 @@ class TaskAdapter(private val tasks: MutableList<Task>) : RecyclerView.Adapter<T
                 .setMessage("Are you sure you want to delete this task?")
                 .setPositiveButton("Yes") { _, _ ->
                     tasks.removeAt(holder.adapterPosition)
-                    notifyItemRemoved(holder.adapterPosition)
+                    recyclerView.post {
+                        notifyItemRemoved(holder.adapterPosition)
+                    }
                 }
                 .setNegativeButton("No", null)
                 .show()
@@ -69,9 +74,12 @@ class TaskAdapter(private val tasks: MutableList<Task>) : RecyclerView.Adapter<T
 
     fun addTask(task: Task) {
         tasks.add(task)
+        //val recyclerView = holder.itemView.parent as? RecyclerView
         // Add runOnUiThread here:
         mainHandler.post {
-            notifyItemInserted(tasks.size - 1)
+            recyclerView.post {
+                notifyItemInserted(tasks.size - 1)
+            }
         }
     }
 
@@ -79,7 +87,9 @@ class TaskAdapter(private val tasks: MutableList<Task>) : RecyclerView.Adapter<T
         if (newTasks != null) {
             tasks.clear()
             tasks.addAll(newTasks)
-            notifyDataSetChanged()
+            recyclerView.post {
+                notifyDataSetChanged()
+            }
         }
     }
 }

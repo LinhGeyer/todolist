@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
 
         // Observe tasks from the database
         val recyclerView: RecyclerView = findViewById(R.id.rvTasks)
-        adapter = TaskAdapter(mutableListOf())
+        adapter = TaskAdapter(recyclerView, mutableListOf())
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this)
 

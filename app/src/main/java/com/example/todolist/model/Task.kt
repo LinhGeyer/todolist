@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 data class Task(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val title: String,
-    var isCompleted: Boolean
+    var isCompleted: Boolean,
+    val category: String,
 )

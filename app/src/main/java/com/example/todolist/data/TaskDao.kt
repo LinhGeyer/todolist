@@ -17,4 +17,11 @@ interface TaskDao {
 
     @Update
     suspend fun updateTask(task: Task)
+
+    @Query("SELECT * FROM tasks WHERE category = :category")
+    suspend fun getTasksByCategory(category: String): List<Task>
+
+    @Query("SELECT DISTINCT category FROM tasks")
+    suspend fun getAllCategories(): List<String>
+
 }

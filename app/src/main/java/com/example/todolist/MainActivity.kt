@@ -15,7 +15,11 @@ import com.example.todolist.adapter.TaskAdapter
 import com.example.todolist.data.AppDatabase
 import com.example.todolist.data.TaskDao
 import com.example.todolist.model.Task
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 
 class MainActivity : AppCompatActivity() {
     // Declare database, DAO, and adapter variables
@@ -57,28 +61,25 @@ class MainActivity : AppCompatActivity() {
 
         // Set up the "Add Task" button click listener
         findViewById<Button>(R.id.btnAddTask).setOnClickListener {
-            // Get the task title from the input field
             val taskTitle = taskInput.text.toString()
-
-            // Check if the input is not blank
+            val taskCategory = findViewById<EditText>(R.id.etTaskCategory).text.toString()
             if (taskTitle.isNotBlank()) {
-                // Create a new Task object
-                val newTask = Task(title = taskTitle, isCompleted = false)
-
-                // Add the new task to the adapter's list
-                adapter.addTask(newTask)
-
-                // Clear the input field after adding the task
-                taskInput.text.clear()
-
-                // Insert the new task into the database
-                lifecycleScope.launch {
+                // Use default category if none is provided
+                val category = if (taskCategory.isNotBlank()) taskCategory else "General"
+                val newTask = Task(title = taskTitle, isCompleted = false, category = category)
+                CoroutineScope(Dispatchers.IO).launch {
                     taskDao.insertTask(newTask)
+                    // Reload tasks from the database
+                    taskDao.updateTask(newTask)
+                    withContext(Dispatchers.Main) {
+                        taskInput.text.clear()
+                        findViewById<EditText>(R.id.etTaskCategory).text.clear()
+                    }
                 }
             } else {
-                // Show a toast message if the input is blank
                 Toast.makeText(this, "Please enter a task", Toast.LENGTH_SHORT).show()
             }
         }
+
     }
 }

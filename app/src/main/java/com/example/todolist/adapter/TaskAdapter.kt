@@ -25,6 +25,7 @@ class TaskAdapter(private val recyclerView: RecyclerView, private val tasks: Mut
     class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cbTaskCompleted: CheckBox = itemView.findViewById(R.id.cbTaskCompleted) // CheckBox for task completion
         val tvTaskName: TextView = itemView.findViewById(R.id.tvTaskName) // TextView for task title
+        val tvTaskCategory: TextView = itemView.findViewById(R.id.tvTaskCategory) // TextView for task category
     }
 
     // Inflates the task item layout and creates a ViewHolder
@@ -42,6 +43,8 @@ class TaskAdapter(private val recyclerView: RecyclerView, private val tasks: Mut
 
         // Set the CheckBox state based on task completion
         holder.cbTaskCompleted.isChecked = task.isCompleted
+
+        holder.tvTaskCategory.text = task.category  // Display category
 
         // Update the TextView's paint flags to show strike-through text for completed tasks
         holder.tvTaskName.paintFlags = if (task.isCompleted) {

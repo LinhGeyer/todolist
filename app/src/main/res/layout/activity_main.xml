@@ -22,6 +22,11 @@
         android:hint="Enter category"
         android:inputType="text" />
 
+    <Spinner
+        android:id="@+id/spinnerCategory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
 
     <!-- Button to add the task -->
     <Button

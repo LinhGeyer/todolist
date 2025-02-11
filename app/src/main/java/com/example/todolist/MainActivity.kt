@@ -1,11 +1,7 @@
 package com.example.todolist
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.widget.Button
-import android.widget.EditText
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,65 +11,58 @@ import com.example.todolist.adapter.TaskAdapter
 import com.example.todolist.data.AppDatabase
 import com.example.todolist.data.TaskDao
 import com.example.todolist.model.Task
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import android.view.View
 
 
 class MainActivity : AppCompatActivity() {
-    // Declare database, DAO, and adapter variables
     private lateinit var db: AppDatabase
     private lateinit var taskDao: TaskDao
     private lateinit var adapter: TaskAdapter
+    private lateinit var spinnerCategory: Spinner
+    private lateinit var taskInput: EditText
+    private lateinit var categoryInput: EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Set the layout for this activity
         setContentView(R.layout.activity_main)
 
-        // Find the EditText view for entering new tasks
-        val taskInput = findViewById<EditText>(R.id.etNewTask)
+        // Initialize views
+        taskInput = findViewById(R.id.etNewTask)
+        categoryInput = findViewById(R.id.etTaskCategory)
+        val addTaskButton = findViewById<Button>(R.id.btnAddTask)
+        val recyclerView = findViewById<RecyclerView>(R.id.rvTasks)
+        spinnerCategory = findViewById(R.id.spinnerCategory)
 
-        // Initialize the Room database
+        // Initialize Room Database
         db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
-            "tasks-db" // Database name
+            "tasks-db"
         ).build()
-
-        // Get the TaskDao from the database
         taskDao = db.taskDao()
 
-        // Set up the RecyclerView to display the list of tasks
-        val recyclerView: RecyclerView = findViewById(R.id.rvTasks)
-        adapter = TaskAdapter(recyclerView, mutableListOf()) // Initialize the adapter with an empty list
-        recyclerView.adapter = adapter // Set the adapter to the RecyclerView
-        recyclerView.layoutManager = LinearLayoutManager(this) // Use a LinearLayoutManager for the RecyclerView
+        // Initialize RecyclerView
+        adapter = TaskAdapter(recyclerView, mutableListOf())
+        recyclerView.adapter = adapter
+        recyclerView.layoutManager = LinearLayoutManager(this)
 
-        // Load tasks from the database and observe changes
-        lifecycleScope.launch {
-            taskDao.getAllTasks().observe(this@MainActivity) { tasks ->
-                // Update the adapter's task list when the data changes
-                adapter.setTasks(tasks)
-            }
-        }
+        // Load all tasks sorted by category
+        loadTasks()
 
-        // Set up the "Add Task" button click listener
-        findViewById<Button>(R.id.btnAddTask).setOnClickListener {
-            val taskTitle = taskInput.text.toString()
-            val taskCategory = findViewById<EditText>(R.id.etTaskCategory).text.toString()
-            if (taskTitle.isNotBlank()) {
-                // Use default category if none is provided
-                val category = if (taskCategory.isNotBlank()) taskCategory else "General"
+        // Handle task addition
+        addTaskButton.setOnClickListener {
+            val taskTitle = taskInput.text.toString().trim()
+            val category = categoryInput.text.toString().trim().ifEmpty { "General" }
+
+            if (taskTitle.isNotEmpty()) {
                 val newTask = Task(title = taskTitle, isCompleted = false, category = category)
                 CoroutineScope(Dispatchers.IO).launch {
                     taskDao.insertTask(newTask)
-                    // Reload tasks from the database
-                    taskDao.updateTask(newTask)
+                    loadTasks() // Reload tasks after insertion
                     withContext(Dispatchers.Main) {
                         taskInput.text.clear()
-                        findViewById<EditText>(R.id.etTaskCategory).text.clear()
+                        categoryInput.text.clear()
                     }
                 }
             } else {
@@ -81,5 +70,48 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Handle category selection for filtering
+        setupCategoryFilter()
+    }
+
+    private fun loadTasks(selectedCategory: String? = null) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val tasks = if (selectedCategory == null || selectedCategory == "All") {
+                taskDao.getTasksSortedByCategory()
+            } else {
+                taskDao.getTasksByCategorySorted(selectedCategory)
+            }
+
+            withContext(Dispatchers.Main) {
+                adapter.setTasks(tasks)
+            }
+        }
+    }
+
+    private fun setupCategoryFilter() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val categories = taskDao.getAllCategories()
+            val categoryList = mutableListOf("All") + categories
+
+            withContext(Dispatchers.Main) {
+                val adapter = ArrayAdapter(
+                    this@MainActivity,
+                    android.R.layout.simple_spinner_dropdown_item,
+                    categoryList
+                )
+                spinnerCategory.adapter = adapter
+
+                spinnerCategory.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                    override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
+                        val selectedCategory = categoryList[position]
+                        loadTasks(selectedCategory)
+                    }
+
+                    override fun onNothingSelected(parent: AdapterView<*>) {
+                        loadTasks()
+                    }
+                }
+            }
+        }
     }
 }

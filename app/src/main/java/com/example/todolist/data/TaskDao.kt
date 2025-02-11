@@ -24,4 +24,10 @@ interface TaskDao {
     @Query("SELECT DISTINCT category FROM tasks")
     suspend fun getAllCategories(): List<String>
 
+    @Query("SELECT * FROM tasks ORDER BY category ASC")
+    fun getTasksSortedByCategory(): List<Task>
+
+    @Query("SELECT * FROM tasks WHERE category = :category ORDER BY title ASC")
+    fun getTasksByCategorySorted(category: String): List<Task>
+
 }

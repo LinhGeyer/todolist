@@ -12,8 +12,11 @@ import android.widget.TextView
 import android.graphics.Paint
 import androidx.compose.foundation.layout.size
 import androidx.recyclerview.widget.RecyclerView
+import androidx.room.Room
 import com.example.todolist.R
+import com.example.todolist.data.AppDatabase
 import com.example.todolist.model.Task
+import kotlinx.coroutines.*
 
 // Adapter class for managing the list of tasks in a RecyclerView
 class TaskAdapter(private val recyclerView: RecyclerView, private val tasks: MutableList<Task>) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
@@ -63,19 +66,32 @@ class TaskAdapter(private val recyclerView: RecyclerView, private val tasks: Mut
 
         // Handle long-press on the CheckBox to delete the task
         holder.cbTaskCompleted.setOnLongClickListener {
-            // Show a confirmation dialog for task deletion
-            AlertDialog.Builder(holder.itemView.context)
+            val context = holder.itemView.context
+            AlertDialog.Builder(context)
                 .setTitle("Delete Task")
                 .setMessage("Are you sure you want to delete this task?")
                 .setPositiveButton("Yes") { _, _ ->
-                    tasks.removeAt(holder.adapterPosition) // Remove the task from the list
-                    recyclerView.post {
-                        notifyItemRemoved(holder.adapterPosition) // Notify adapter of item removal
+                    val taskToDelete = tasks[position]
+
+                    // Run delete on a background thread
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val db = Room.databaseBuilder(
+                            context.applicationContext,
+                            AppDatabase::class.java,
+                            "tasks-db"
+                        ).build()
+                        db.taskDao().deleteTask(taskToDelete)
+
+                        // Update UI on the main thread
+                        withContext(Dispatchers.Main) {
+                            tasks.removeAt(position)
+                            notifyItemRemoved(position)
+                        }
                     }
                 }
-                .setNegativeButton("No", null) // Do nothing if "No" is clicked
+                .setNegativeButton("No", null)
                 .show()
-            true // Return true to indicate the long-press event is consumed
+            true
         }
     }
 

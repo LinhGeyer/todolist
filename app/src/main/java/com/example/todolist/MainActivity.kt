@@ -39,7 +39,9 @@ class MainActivity : AppCompatActivity() {
             applicationContext,
             AppDatabase::class.java,
             "tasks-db"
-        ).build()
+        )
+            .fallbackToDestructiveMigration()
+            .build()
         taskDao = db.taskDao()
 
         // Initialize RecyclerView

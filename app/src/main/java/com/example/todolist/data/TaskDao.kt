@@ -30,4 +30,7 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE category = :category ORDER BY title ASC")
     fun getTasksByCategorySorted(category: String): List<Task>
 
+    @Query("SELECT * FROM tasks WHERE date = :selectedDate")
+    fun getTasksByDate(selectedDate: String): LiveData<List<Task>>
+
 }

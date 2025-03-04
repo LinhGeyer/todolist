@@ -9,4 +9,5 @@ data class Task(
     val title: String,
     var isCompleted: Boolean,
     val category: String,
+    val date: String, //DD/MM/YYYY
 )

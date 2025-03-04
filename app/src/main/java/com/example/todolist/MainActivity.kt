@@ -1,5 +1,7 @@
 package com.example.todolist
 
+import android.app.DatePickerDialog
+import android.content.Intent
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -13,6 +15,7 @@ import com.example.todolist.data.TaskDao
 import com.example.todolist.model.Task
 import kotlinx.coroutines.*
 import android.view.View
+import java.util.Calendar
 
 
 class MainActivity : AppCompatActivity() {
@@ -32,6 +35,7 @@ class MainActivity : AppCompatActivity() {
         categoryInput = findViewById(R.id.etTaskCategory)
         val addTaskButton = findViewById<Button>(R.id.btnAddTask)
         val recyclerView = findViewById<RecyclerView>(R.id.rvTasks)
+        val taskDateInput = findViewById<EditText>(R.id.etTaskDate)
         spinnerCategory = findViewById(R.id.spinnerCategory)
 
         // Initialize Room Database
@@ -52,13 +56,30 @@ class MainActivity : AppCompatActivity() {
         // Load all tasks sorted by category
         loadTasks()
 
+        taskDateInput.setOnClickListener {
+            val calendar = Calendar.getInstance()
+            val year = calendar.get(Calendar.YEAR)
+            val month = calendar.get(Calendar.MONTH)
+            val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+            val datePicker = DatePickerDialog(this, { _, selectedYear, selectedMonth, selectedDay ->
+                // Format selected date as "YYYY-MM-DD"
+                val selectedDate = "$selectedYear-${selectedMonth + 1}-$selectedDay"
+                taskDateInput.setText(selectedDate)
+            }, year, month, day)
+
+            datePicker.show()
+        }
+
         // Handle task addition
         addTaskButton.setOnClickListener {
             val taskTitle = taskInput.text.toString().trim()
             val category = categoryInput.text.toString().trim().ifEmpty { "General" }
+            val taskDate = "2024-02-19"
+            // val taskDate = dateInput.text.toString().trim().ifEmpty { "" }
 
             if (taskTitle.isNotEmpty()) {
-                val newTask = Task(title = taskTitle, isCompleted = false, category = category)
+                val newTask = Task(title = taskTitle, isCompleted = false, category = category, date = taskDate)
                 CoroutineScope(Dispatchers.IO).launch {
                     taskDao.insertTask(newTask)
                     loadTasks() // Reload tasks after insertion
@@ -70,6 +91,11 @@ class MainActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Please enter a task", Toast.LENGTH_SHORT).show()
             }
+        }
+        findViewById<Button>(R.id.btnOpenCalendar).setOnClickListener {
+            // Open the Calendar Activity
+            val intent = Intent(this, CalendarActivity::class.java)
+            startActivity(intent)
         }
 
         // Handle category selection for filtering

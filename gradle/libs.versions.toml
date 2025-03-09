@@ -13,6 +13,9 @@ appcompat = "1.7.0"
 room = "2.6.1"
 roomCommon = "2.6.1"
 filamentAndroid = "1.17.1"
+work = "2.8.1"  # WorkManager version
+
+
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,6 +39,8 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-common = { group = "androidx.room", name = "room-common", version.ref = "roomCommon" }
 filament-android = { group = "com.google.ar.sceneform", name = "filament-android", version.ref = "filamentAndroid" }
+work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
+core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

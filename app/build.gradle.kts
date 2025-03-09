@@ -52,6 +52,13 @@ dependencies {
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.appcompat)
 
+    // WorkManager dependencies
+    implementation(libs.work.runtime.ktx)
+
+    // Notifications
+    implementation(libs.core.ktx)
+
+
     // Room dependencies
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.common)

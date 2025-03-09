@@ -2,25 +2,24 @@ package com.example.todolist.adapter
 
 import android.app.AlertDialog
 import android.view.LayoutInflater
-import android.os.Handler
-import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
 import android.graphics.Paint
 import androidx.recyclerview.widget.RecyclerView
-import androidx.room.Room
 import com.example.todolist.R
-import com.example.todolist.data.AppDatabase
+import com.example.todolist.data.TaskDao
 import com.example.todolist.model.Task
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-// Adapter class for managing the list of tasks in a RecyclerView
-class TaskAdapter(private val recyclerView: RecyclerView, private val tasks: MutableList<Task>) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
-
-    // Handler to ensure UI updates are performed on the main thread
-    private val mainHandler = Handler(Looper.getMainLooper())
+class TaskAdapter(
+    private val taskDao: TaskDao, // Pass TaskDao directly
+    private val tasks: MutableList<Task> = mutableListOf() // Initialize with an empty list
+) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
 
     // ViewHolder class to hold references to the views for each task item
     class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -45,50 +44,22 @@ class TaskAdapter(private val recyclerView: RecyclerView, private val tasks: Mut
         // Set the CheckBox state based on task completion
         holder.cbTaskCompleted.isChecked = task.isCompleted
 
-        holder.tvTaskCategory.text = task.category  // Display category
+        // Display category
+        holder.tvTaskCategory.text = task.category
 
         // Update the TextView's paint flags to show strike-through text for completed tasks
-        holder.tvTaskName.paintFlags = if (task.isCompleted) {
-            holder.tvTaskName.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-        } else {
-            holder.tvTaskName.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
-        }
+        updateStrikeThroughText(holder.tvTaskName, task.isCompleted)
 
         // Handle CheckBox toggle to update task completion status
         holder.cbTaskCompleted.setOnCheckedChangeListener { _, isChecked ->
             task.isCompleted = isChecked
-            recyclerView.post {
-                notifyItemChanged(position) // Notify adapter of data change
-            }
+            updateStrikeThroughText(holder.tvTaskName, isChecked)
+            updateTaskCompletion(task)
         }
 
         // Handle long-press on the CheckBox to delete the task
         holder.cbTaskCompleted.setOnLongClickListener {
-            val context = holder.itemView.context
-            AlertDialog.Builder(context)
-                .setTitle("Delete Task")
-                .setMessage("Are you sure you want to delete this task?")
-                .setPositiveButton("Yes") { _, _ ->
-                    val taskToDelete = tasks[position]
-
-                    // Run delete on a background thread
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val db = Room.databaseBuilder(
-                            context.applicationContext,
-                            AppDatabase::class.java,
-                            "tasks-db"
-                        ).build()
-                        db.taskDao().deleteTask(taskToDelete)
-
-                        // Update UI on the main thread
-                        withContext(Dispatchers.Main) {
-                            tasks.removeAt(position)
-                            notifyItemRemoved(position)
-                        }
-                    }
-                }
-                .setNegativeButton("No", null)
-                .show()
+            showDeleteTaskDialog(holder.itemView.context, task, position)
             true
         }
     }
@@ -101,17 +72,47 @@ class TaskAdapter(private val recyclerView: RecyclerView, private val tasks: Mut
     // Adds a new task to the list and notifies the adapter
     fun addTask(task: Task) {
         tasks.add(task)
-        mainHandler.post {
-            recyclerView.post {
-                notifyItemInserted(tasks.size - 1) // Notify adapter of item insertion
-            }
+        notifyItemInserted(tasks.size - 1) // Notify adapter of item insertion
+    }
+
+    // Updates the task list and notifies the adapter
+    fun setTasks(newTasks: List<Task>) {
+        tasks.clear()
+        tasks.addAll(newTasks)
+        notifyDataSetChanged() // Notify adapter of data change
+    }
+
+    // Helper method to update strike-through text
+    private fun updateStrikeThroughText(textView: TextView, isCompleted: Boolean) {
+        textView.paintFlags = if (isCompleted) {
+            textView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
+        } else {
+            textView.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
         }
     }
-    fun setTasks(tasks: List<Task>?) {
-        this.tasks.clear()
-        if (tasks != null) {
-            this.tasks.addAll(tasks)
+
+    // Helper method to update task completion status in the database
+    private fun updateTaskCompletion(task: Task) {
+        CoroutineScope(Dispatchers.IO).launch {
+            taskDao.updateTask(task)
         }
-        notifyDataSetChanged()
+    }
+
+    // Helper method to show a delete task dialog
+    private fun showDeleteTaskDialog(context: android.content.Context, task: Task, position: Int) {
+        AlertDialog.Builder(context)
+            .setTitle("Delete Task")
+            .setMessage("Are you sure you want to delete this task?")
+            .setPositiveButton("Yes") { _, _ ->
+                CoroutineScope(Dispatchers.IO).launch {
+                    taskDao.deleteTask(task)
+                    withContext(Dispatchers.Main) {
+                        tasks.removeAt(position)
+                        notifyItemRemoved(position) // Notify adapter of item removal
+                    }
+                }
+            }
+            .setNegativeButton("No", null)
+            .show()
     }
 }

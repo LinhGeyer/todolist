@@ -55,6 +55,7 @@ dependencies {
     // Room dependencies
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.common)
+    implementation(libs.filament.android)
     kapt(libs.androidx.room.compiler) // Annotation processor
     implementation(libs.androidx.room.ktx)
 

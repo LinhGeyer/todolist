@@ -19,24 +19,23 @@ interface TaskDao {
     suspend fun updateTask(task: Task)
 
     @Query("SELECT * FROM tasks WHERE category = :category")
-    suspend fun getTasksByCategory(category: String): List<Task>
+    fun getTasksByCategory(category: String): LiveData<List<Task>> // Changed to LiveData
 
     @Query("SELECT DISTINCT category FROM tasks")
-    suspend fun getAllCategories(): List<String>
+    suspend fun getAllCategories(): List<String> // No change, used in background
 
     @Query("SELECT * FROM tasks ORDER BY category ASC")
-    fun getTasksSortedByCategory(): List<Task>
+    fun getTasksSortedByCategory(): LiveData<List<Task>> // Changed to LiveData
 
     @Query("SELECT * FROM tasks WHERE category = :category ORDER BY title ASC")
-    fun getTasksByCategorySorted(category: String): List<Task>
+    fun getTasksByCategorySorted(category: String): LiveData<List<Task>> // Changed to LiveData
 
     @Query("SELECT * FROM tasks WHERE date = :selectedDate")
-    fun getTasksByDate(selectedDate: String): LiveData<List<Task>>
+    fun getTasksByDate(selectedDate: String): LiveData<List<Task>> // No change, already LiveData
 
     @Query("SELECT * FROM tasks WHERE date = :selectedDate")
-    fun getTasksByDate2(selectedDate: String): List<Task>
+    suspend fun getTasksByDate2(selectedDate: String): List<Task> // No change, used in background
 
     @Query("SELECT * FROM tasks WHERE date = :date")
-    fun getTasksByDate1(date: String): LiveData<List<Task>>
-
+    fun getTasksByDate1(date: String): LiveData<List<Task>> // No change, already LiveData
 }

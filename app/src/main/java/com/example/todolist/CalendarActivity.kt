@@ -21,6 +21,7 @@ class CalendarActivity : AppCompatActivity() {
     private lateinit var selectedDateText: TextView
     private lateinit var recyclerView: RecyclerView
     private lateinit var calendarView: CalendarView
+    private var selectedDate: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,18 +39,18 @@ class CalendarActivity : AppCompatActivity() {
         calendarView = findViewById(R.id.calendarView)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = TaskAdapter(androidx.recyclerview.widget.RecyclerView(this), mutableListOf()) // Initialize with an empty list
+        adapter = TaskAdapter(taskDao) // Initialize with an empty list
         recyclerView.adapter = adapter
 
         // Set default date to today
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val todayDate = dateFormat.format(Date())
-        selectedDateText.text = "Tasks for: $todayDate"
-        loadTasksForDate(todayDate)
+        selectedDate = dateFormat.format(Date())
+        selectedDateText.text = "Tasks for: $selectedDate"
+        loadTasksForDate(selectedDate)
 
         // Listen for date changes
         calendarView.setOnDateChangeListener { _, year, month, day ->
-            val selectedDate = String.format("%04d-%02d-%02d", year, month + 1, day)
+            selectedDate = String.format("%04d-%02d-%02d", year, month + 1, day)
             selectedDateText.text = "Tasks for: $selectedDate"
             loadTasksForDate(selectedDate)
         }
@@ -61,5 +62,10 @@ class CalendarActivity : AppCompatActivity() {
                 adapter.setTasks(tasks)
             }
         }
+    }
+
+    // Call this method after adding a new task to refresh the list
+    fun refreshTaskList() {
+        loadTasksForDate(selectedDate)
     }
 }

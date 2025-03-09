@@ -1,6 +1,5 @@
 package com.example.todolist.adapter
 
-import android.app.Activity
 import android.app.AlertDialog
 import android.view.LayoutInflater
 import android.os.Handler
@@ -10,7 +9,6 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
 import android.graphics.Paint
-import androidx.compose.foundation.layout.size
 import androidx.recyclerview.widget.RecyclerView
 import androidx.room.Room
 import com.example.todolist.R
@@ -109,15 +107,11 @@ class TaskAdapter(private val recyclerView: RecyclerView, private val tasks: Mut
             }
         }
     }
-
-    // Updates the list of tasks and notifies the adapter of the change
-    fun setTasks(newTasks: List<Task>?) {
-        if (newTasks != null) {
-            tasks.clear() // Clear the current list
-            tasks.addAll(newTasks) // Add all new tasks
-            recyclerView.post {
-                notifyDataSetChanged() // Notify adapter of data set change
-            }
+    fun setTasks(tasks: List<Task>?) {
+        this.tasks.clear()
+        if (tasks != null) {
+            this.tasks.addAll(tasks)
         }
+        notifyDataSetChanged()
     }
 }

@@ -1,5 +1,6 @@
 package com.example.todolist
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
@@ -15,7 +16,10 @@ import com.example.todolist.data.TaskDao
 import com.example.todolist.model.Task
 import kotlinx.coroutines.*
 import android.view.View
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 
 class MainActivity : AppCompatActivity() {
@@ -26,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var taskInput: EditText
     private lateinit var categoryInput: EditText
 
+    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -36,6 +41,7 @@ class MainActivity : AppCompatActivity() {
         val addTaskButton = findViewById<Button>(R.id.btnAddTask)
         val recyclerView = findViewById<RecyclerView>(R.id.rvTasks)
         val taskDateInput = findViewById<EditText>(R.id.etTaskDate)
+        val calendarView = findViewById<CalendarView>(R.id.calendarView)
         spinnerCategory = findViewById(R.id.spinnerCategory)
 
         // Initialize Room Database
@@ -52,6 +58,17 @@ class MainActivity : AppCompatActivity() {
         adapter = TaskAdapter(recyclerView, mutableListOf())
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this)
+
+        //calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
+          //  val selectedDate = String.format("%04d-%02d-%02d", year, month + 1, dayOfMonth)
+
+            //lifecycleScope.launch(Dispatchers.IO) {
+              //  val tasksForSelectedDate = taskDao.getTasksByDate2(selectedDate)
+                //withContext(Dispatchers.Main) {
+                  //  adapter.setTasks(tasksForSelectedDate)
+                //}
+            //}
+        //}
 
         // Load all tasks sorted by category
         loadTasks()
@@ -72,26 +89,35 @@ class MainActivity : AppCompatActivity() {
         }
 
         // Handle task addition
-        addTaskButton.setOnClickListener {
+        findViewById<Button>(R.id.btnAddTask).setOnClickListener {
             val taskTitle = taskInput.text.toString().trim()
-            val category = categoryInput.text.toString().trim().ifEmpty { "General" }
-            val taskDate = "2024-02-19"
-            // val taskDate = dateInput.text.toString().trim().ifEmpty { "" }
+            val taskCategory = findViewById<EditText>(R.id.etTaskCategory).text.toString().trim()
 
-            if (taskTitle.isNotEmpty()) {
-                val newTask = Task(title = taskTitle, isCompleted = false, category = category, date = taskDate)
-                CoroutineScope(Dispatchers.IO).launch {
+            if (taskTitle.isNotBlank()) {
+                val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val currentDate = sdf.format(Date())
+
+                val category = if (taskCategory.isNotBlank()) taskCategory else "General"
+                val newTask = Task(title = taskTitle, isCompleted = false, category = category, date = currentDate)
+
+                lifecycleScope.launch(Dispatchers.IO) {
                     taskDao.insertTask(newTask)
-                    loadTasks() // Reload tasks after insertion
+                    val updatedTasks = taskDao.getAllTasks().value // Fetch updated list
+
                     withContext(Dispatchers.Main) {
+                        if (updatedTasks != null) {
+                            adapter.setTasks(updatedTasks) // Update UI with new task list
+                        }
                         taskInput.text.clear()
-                        categoryInput.text.clear()
+                        findViewById<EditText>(R.id.etTaskCategory).text.clear()
                     }
                 }
             } else {
                 Toast.makeText(this, "Please enter a task", Toast.LENGTH_SHORT).show()
             }
         }
+
+
         findViewById<Button>(R.id.btnOpenCalendar).setOnClickListener {
             // Open the Calendar Activity
             val intent = Intent(this, CalendarActivity::class.java)

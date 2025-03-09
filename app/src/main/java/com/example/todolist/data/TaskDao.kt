@@ -33,4 +33,10 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE date = :selectedDate")
     fun getTasksByDate(selectedDate: String): LiveData<List<Task>>
 
+    @Query("SELECT * FROM tasks WHERE date = :selectedDate")
+    fun getTasksByDate2(selectedDate: String): List<Task>
+
+    @Query("SELECT * FROM tasks WHERE date = :date")
+    fun getTasksByDate1(date: String): LiveData<List<Task>>
+
 }

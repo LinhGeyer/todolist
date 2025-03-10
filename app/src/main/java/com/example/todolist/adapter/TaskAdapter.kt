@@ -1,5 +1,7 @@
 package com.example.todolist.adapter
 
+import android.app.AlertDialog
+import android.content.Context
 import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.View
@@ -18,7 +20,7 @@ import kotlinx.coroutines.launch
 
 class TaskAdapter(
     private val taskDao: TaskDao,
-    private val tasks: MutableList<Task> = mutableListOf() // Default empty list
+    private val tasks: MutableList<Task> = mutableListOf()
 ) : RecyclerView.Adapter<TaskAdapter.TaskViewHolder>() {
 
     class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -60,6 +62,12 @@ class TaskAdapter(
                 showCompletionSnackbar(holder.itemView, task.title)
             }
         }
+
+        // Handle long-press to delete task
+        holder.itemView.setOnLongClickListener {
+            showDeleteTaskDialog(holder.itemView.context, task, position)
+            true // Return true to indicate the event is consumed
+        }
     }
 
     override fun getItemCount(): Int {
@@ -75,33 +83,31 @@ class TaskAdapter(
     }
 
     private fun showCompletionSnackbar(view: View, taskTitle: String) {
-        val snackbar = Snackbar.make(view, "", Snackbar.LENGTH_LONG)
-        val snackbarLayout = snackbar.view as Snackbar.SnackbarLayout
-
-        // Inflate the custom layout
-        val customView = LayoutInflater.from(view.context).inflate(R.layout.custom_snackbar, null)
-
-        // Set the task title
-        val snackbarText = customView.findViewById<TextView>(R.id.snackbar_text)
-        snackbarText.text = "You've completed the task: $taskTitle"
-
-        // Set the dismiss action
-        val snackbarAction = customView.findViewById<Button>(R.id.snackbar_action)
-        snackbarAction.setOnClickListener {
-            snackbar.dismiss()
-        }
-
-        // Remove the default Snackbar content and add the custom layout
-        snackbarLayout.removeAllViews()
-        snackbarLayout.addView(customView)
-
-        // Show the Snackbar at the top of the screen
-        val params = snackbarLayout.layoutParams as ViewGroup.MarginLayoutParams
-        params.setMargins(0, 0, 0, 0) // Adjust margins if needed
-        snackbarLayout.layoutParams = params
-
-        snackbar.show()
+        Snackbar.make(
+            view,
+            "You've completed the task: $taskTitle",
+            Snackbar.LENGTH_LONG
+        ).show()
     }
+
+    private fun showDeleteTaskDialog(context: Context, task: Task, position: Int) {
+        AlertDialog.Builder(context)
+            .setTitle("Delete Task")
+            .setMessage("Are you sure you want to delete this task?")
+            .setPositiveButton("Delete") { _, _ ->
+                // Delete the task from the database
+                CoroutineScope(Dispatchers.IO).launch {
+                    taskDao.deleteTask(task)
+                }
+
+                // Remove the task from the list and notify the adapter
+                tasks.removeAt(position)
+                notifyItemRemoved(position)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
     fun setTasks(newTasks: List<Task>) {
         tasks.clear()
         tasks.addAll(newTasks)

@@ -14,6 +14,9 @@ import com.example.todolist.data.TaskDao
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import com.example.todolist.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class CalendarActivity : AppCompatActivity() {
     private lateinit var taskDao: TaskDao
@@ -27,13 +30,22 @@ class CalendarActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_calendar)
 
-        // Initialize database
-        val db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java, "tasks-db"
-        ).build()
-        taskDao = db.taskDao()
+        // Initialize database asynchronously
+        lifecycleScope.launch(Dispatchers.IO) {
+            val db = Room.databaseBuilder(
+                applicationContext,
+                AppDatabase::class.java, "tasks-db"
+            ).build()
+            taskDao = db.taskDao()
 
+            withContext(Dispatchers.Main) {
+                // Initialize UI components after database is ready
+                initializeUI()
+            }
+        }
+    }
+
+    private fun initializeUI() {
         selectedDateText = findViewById(R.id.tvSelectedDate)
         recyclerView = findViewById(R.id.rvTasksByDate)
         calendarView = findViewById(R.id.calendarView)
@@ -44,21 +56,22 @@ class CalendarActivity : AppCompatActivity() {
 
         // Set default date to today
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        selectedDate = dateFormat.format(Date())
-        selectedDateText.text = "Tasks for: $selectedDate"
-        loadTasksForDate(selectedDate)
+        val todayDate = dateFormat.format(Date())
+        selectedDateText.text = "Tasks for: $todayDate"
+        loadTasksForDate(todayDate)
 
         // Listen for date changes
         calendarView.setOnDateChangeListener { _, year, month, day ->
-            selectedDate = String.format("%04d-%02d-%02d", year, month + 1, day)
+            val selectedDate = String.format("%04d-%02d-%02d", year, month + 1, day)
             selectedDateText.text = "Tasks for: $selectedDate"
             loadTasksForDate(selectedDate)
         }
     }
 
     private fun loadTasksForDate(date: String) {
-        lifecycleScope.launch {
-            taskDao.getTasksByDate(date).observe(this@CalendarActivity) { tasks ->
+        lifecycleScope.launch(Dispatchers.IO) {
+            val tasks = taskDao.getTasksByDate2(date) // Use the non-LiveData version
+            withContext(Dispatchers.Main) {
                 adapter.setTasks(tasks)
             }
         }

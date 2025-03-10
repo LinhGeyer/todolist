@@ -31,10 +31,10 @@ interface TaskDao {
     fun getTasksByCategorySorted(category: String): LiveData<List<Task>> // Changed to LiveData
 
     @Query("SELECT * FROM tasks WHERE date = :selectedDate")
-    fun getTasksByDate(selectedDate: String): LiveData<List<Task>> // No change, already LiveData
+    fun getTasksByDate(selectedDate: String): LiveData<List<Task>>
 
     @Query("SELECT * FROM tasks WHERE date = :selectedDate")
-    suspend fun getTasksByDate2(selectedDate: String): List<Task> // No change, used in background
+    suspend fun getTasksByDate2(selectedDate: String): List<Task>
 
     @Query("SELECT * FROM tasks WHERE date = :date")
     fun getTasksByDate1(date: String): LiveData<List<Task>> // No change, already LiveData

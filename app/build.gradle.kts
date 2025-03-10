@@ -58,6 +58,8 @@ dependencies {
     // Notifications
     implementation(libs.core.ktx)
 
+    //Snackbar
+    implementation(libs.google.material)
 
     // Room dependencies
     implementation(libs.androidx.room.runtime)

@@ -6,7 +6,8 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="8dp"
-    android:gravity="center_vertical">
+    android:gravity="center_vertical"
+    android:theme="@style/todoapp_Theme.Todolist">
 
     <CheckBox
         android:id="@+id/cbTaskCompleted"

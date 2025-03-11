@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme for Dark Mode -->
-    <style name="Theme.Todolist" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/purple_200</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
-        <item name="colorOnPrimary">@color/black</item>
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_200</item>
-        <item name="colorOnSecondary">@color/black</item>
+    <style name="todoapp_Theme.Todolist" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary and secondary colors -->
+        <item name="colorPrimary">@color/todoapp_purple_200</item>
+        <item name="colorPrimaryVariant">@color/todoapp_purple_700</item>
+        <item name="colorOnPrimary">@color/todoapp_black</item>
+        <item name="colorSecondary">@color/todoapp_teal_200</item>
+        <item name="colorSecondaryVariant">@color/todoapp_teal_200</item>
+        <item name="colorOnSecondary">@color/todoapp_purple_500</item>
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+
+        <!-- Background and text colors -->
+        <item name="android:windowBackground">@color/todoapp_background_color</item>
+        <item name="todoapp_colorBackground">@color/todoapp_background_color</item>
+        <item name="colorOnBackground">@color/todoapp_text_color</item>
 
         <!-- Disable the default action bar -->
         <item name="windowActionBar">false</item>

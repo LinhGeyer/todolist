@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Additional styles for Light Mode (if needed) -->
+    <!-- Additional styles for Dark Mode (if needed) -->
     <style name="todoapp_TextAppearance.Title" parent="TextAppearance.MaterialComponents.Headline5">
         <item name="android:textColor">@color/todoapp_text_color</item>
         <item name="android:textSize">24sp</item>

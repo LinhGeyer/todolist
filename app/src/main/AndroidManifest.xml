@@ -10,16 +10,17 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Todolist"
+        android:theme="@style/todoapp_Theme.Todolist"
         android:hardwareAccelerated="false"
         tools:targetApi="31">
         <activity android:name=".CalendarActivity"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/todoapp_Theme.Todolist" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme">
+            android:theme="@style/todoapp_Theme.Todolist"
+            android:hardwareAccelerated="false">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

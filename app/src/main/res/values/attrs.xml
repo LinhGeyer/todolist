@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="todoapp_Theme.Todolist">
+        <attr name="todoapp_colorBackground" format="color|reference" />
+        <attr name="todoapp_colorOnBackground" format="color|reference" />
+    </declare-styleable>
+</resources>

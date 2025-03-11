@@ -8,6 +8,7 @@ plugins {
 android {
     namespace = "com.example.todolist"
     compileSdk = 35
+    resourcePrefix = "todoapp_"
 
     defaultConfig {
         applicationId = "com.example.todolist"

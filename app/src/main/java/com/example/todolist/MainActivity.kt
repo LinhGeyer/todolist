@@ -5,6 +5,7 @@ import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -45,9 +46,20 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        applyTheme() // Apply theme after setting content view
+        // Initialize Room Database
+        db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "tasks-db"
+        )
+            .fallbackToDestructiveMigration()
+            .build()
+        taskDao = db.taskDao() // Initialize taskDao
 
-        // Set the Toolbar as the Action Bar
+        // Now it's safe to use taskDao
+        loadTasks() // Call this after taskDao is initialized
+        setupCategoryFilter() // Call this after taskDao is initialized
+
         val toolbar: Toolbar = binding.toolbar
         setSupportActionBar(toolbar)
 
@@ -59,23 +71,10 @@ class MainActivity : AppCompatActivity() {
         val recyclerView = binding.rvTasks
         spinnerCategory = binding.spinnerCategory
 
-        // Initialize Room Database
-        db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java,
-            "tasks-db"
-        )
-            .fallbackToDestructiveMigration()
-            .build()
-        taskDao = db.taskDao()
-
         // Initialize RecyclerView
         adapter = TaskAdapter(taskDao)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this)
-
-        // Load all tasks sorted by category
-        loadTasks()
 
         // Set up date picker for taskDateInput
         taskDateInput.setOnClickListener {
@@ -130,10 +129,9 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, CalendarActivity::class.java)
             startActivity(intent)
         }
-
-        // Handle category selection for filtering
-        setupCategoryFilter()
     }
+
+    // Other methods (loadTasks, setupCategoryFilter, etc.) remain unchanged
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
@@ -161,6 +159,9 @@ class MainActivity : AppCompatActivity() {
             "dark" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
             else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         }
+
+        // Recreate the activity to apply the new theme
+        recreate()
     }
 
     private fun loadTasks(selectedCategory: String? = null) {

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <!-- res/layout/custom_snackbar.xml -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -6,7 +7,7 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:padding="16dp"
-    android:background="@color/purple_500"
+    android:background="@color/todoapp_purple_500"
     android:elevation="8dp">
 
     <TextView
@@ -24,4 +25,4 @@
         android:text="Dismiss"
         android:textColor="@android:color/white"
         android:background="?attr/selectableItemBackgroundBorderless" />
-    </LinearLayout>
+</LinearLayout>

@@ -9,6 +9,9 @@ interface TaskDao {
     @Query("SELECT * FROM tasks")
     fun getAllTasks(): LiveData<List<Task>>
 
+    @Query("SELECT * FROM tasks")
+    fun getAllTasks1(): List<Task>
+
     @Insert
     suspend fun insertTask(task: Task)
 
